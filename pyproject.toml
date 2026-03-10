@@ -1,0 +1,50 @@
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fidloy-sdk"
+version = "0.1.1"
+description = "Official Python SDK for the Fidloy API"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+  { name = "Fidloy" }
+]
+keywords = ["fidloy", "sdk", "api", "loyalty"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Libraries"
+]
+dependencies = [
+  "httpx>=0.27.0"
+]
+
+[project.urls]
+Homepage = "https://fidloy.com"
+Documentation = "https://dashboard.fidloy.com"
+Repository = "https://github.com/fidloy/fidloy-sdk-python"
+Issues = "https://github.com/fidloy/fidloy-sdk-python/issues"
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0",
+  "build>=1.2.0",
+  "twine>=5.1.0"
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fidloy_sdk"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
