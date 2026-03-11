@@ -3,8 +3,8 @@ requires = ["hatchling>=1.25.0"]
 build-backend = "hatchling.build"
 
 [project]
-name = "fidloy-sdk"
-version = "0.1.6"
+name = "fidloy"
+version = "0.2.0"
 description = "Official Python SDK for the Fidloy API"
 readme = "README.md"
 requires-python = ">=3.9"
