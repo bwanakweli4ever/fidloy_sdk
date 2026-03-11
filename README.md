@@ -11,45 +11,40 @@ pip install fidloy-sdk
 ## Quick Start
 
 ```python
+from fidloy_sdk import Fidloy
+
+client = Fidloy(api_key="YOUR_API_KEY")
+
+transactions = client.transactions.list(business_id=2)
+
+for txn in transactions:
+    print(txn.get("id"), txn.get("amount"))
+
+client.close()
+```
+
+`base_url` is optional and already defaults to the production API.
+
+## Also Available (Direct Client)
+
+```python
 from fidloy_sdk import FidloyClient
 
-client = FidloyClient(
-    api_key="YOUR_API_KEY",
-    base_url="https://api.fidloy.com/api"
-)
-
-history = client.get_rewards_history(
-    business_id=1,
-    customer_id=123,
-    event_type="reward_redeemed",
-    page=1,
-    page_size=20,
-)
-
-print(history)
-
+client = FidloyClient(api_key="YOUR_API_KEY")
 customer = client.create_customer(
     first_name="Alex",
     last_name="Bwana",
-    email="alex@example.com",
+    business_id=2,
     phone="+250788000000",
-    business_id=1,
 )
-
-tx = client.create_transaction(
-    customer_id=customer.get("id", 123),
-    business_id=1,
-    amount=15000,
-    store_name="Main Branch",
-    transaction_date="2026-03-11T12:00:00Z",
-)
-
+print(customer)
 client.close()
 ```
 
 ## Main Features
 
 - API-key authenticated requests
+- Very simple `Fidloy` facade for beginners
 - Customer-in-business reward history helper methods
 - Customer and transaction creation helpers
 - Points and coupon redemption helpers
@@ -85,4 +80,3 @@ python -m twine upload dist/*
 ```
 
 Use a PyPI token when uploading.
-# fidloy_sdk

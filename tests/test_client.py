@@ -1,6 +1,6 @@
 import pytest
 
-from fidloy_sdk import FidloyClient, FidloyConfigurationError
+from fidloy_sdk import Fidloy, FidloyClient, FidloyConfigurationError
 
 
 def test_requires_api_key() -> None:
@@ -52,4 +52,24 @@ def test_create_customer_payload() -> None:
     assert captured["path"] == "/customer/"
     assert captured["json"]["first_name"] == "Alex"
     assert captured["json"]["business_id"] == 1
+    client.close()
+
+
+def test_simple_fidloy_transactions_list() -> None:
+    client = Fidloy(api_key="test-key")
+    captured = {}
+
+    def fake_request(method, path, *, params=None, json=None):
+        captured["method"] = method
+        captured["path"] = path
+        captured["params"] = params
+        return {"items": [{"id": 1, "amount": 1000}]}
+
+    client._request = fake_request
+    items = client.transactions.list(business_id=2)
+
+    assert items == [{"id": 1, "amount": 1000}]
+    assert captured["method"] == "GET"
+    assert captured["path"] == "/customer/transactions/"
+    assert captured["params"]["business_id"] == 2
     client.close()

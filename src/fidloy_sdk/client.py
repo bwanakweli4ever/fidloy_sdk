@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import httpx
 
@@ -248,3 +248,54 @@ class FidloyClient:
             f"/loyalty/accounts/{business_id}/customers/{customer_id}/rewards-history",
             params=params,
         )
+
+
+class _TransactionsResource:
+    """Convenient resource wrapper for transaction listing."""
+
+    def __init__(self, client: FidloyClient) -> None:
+        self._client = client
+
+    def list(
+        self,
+        *,
+        business_id: int,
+        limit: int = 100,
+        skip: int = 0,
+        customer_id: Optional[int] = None,
+    ) -> List[Dict[str, Any]]:
+        params: Dict[str, Any] = {
+            "business_id": business_id,
+            "limit": limit,
+            "skip": skip,
+        }
+        if customer_id is not None:
+            params["customer_id"] = customer_id
+
+        data = self._client._request("GET", "/customer/transactions/", params=params)
+        if isinstance(data, dict):
+            if isinstance(data.get("items"), list):
+                return data["items"]
+            if isinstance(data.get("data"), list):
+                return data["data"]
+            if isinstance(data.get("transactions"), list):
+                return data["transactions"]
+        return []
+
+
+class Fidloy(FidloyClient):
+    """Beginner-friendly SDK facade.
+
+    Example:
+        client = Fidloy(api_key="...")
+        txns = client.transactions.list(business_id=2)
+    """
+
+    def __init__(
+        self,
+        api_key: str,
+        base_url: str = "https://api.fidloy.com/api",
+        timeout: float = 30.0,
+    ) -> None:
+        super().__init__(api_key=api_key, base_url=base_url, timeout=timeout)
+        self.transactions = _TransactionsResource(self)

@@ -1,4 +1,4 @@
-from .client import FidloyClient
+from .client import Fidloy, FidloyClient
 from .exceptions import (
     FidloyAPIError,
     FidloyConfigurationError,
@@ -7,6 +7,7 @@ from .exceptions import (
 )
 
 __all__ = [
+    "Fidloy",
     "FidloyClient",
     "FidloyError",
     "FidloyAPIError",
