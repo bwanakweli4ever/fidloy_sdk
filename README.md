@@ -113,6 +113,8 @@ client.close()
 - Customer-in-business reward history helper methods
 - Customer and transaction creation helpers
 - Points and coupon redemption helpers
+- Point balance checking and point rules listing
+- Coupon validation and code checking
 - Receipt and webhook creation helpers
 - Typed, predictable exceptions
 - Configurable timeout and headers
