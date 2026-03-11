@@ -53,6 +53,43 @@ for customer in client.list_customers(business_id=2):
 client.close()
 ```
 
+### Example 3: Get point balance
+
+```python
+from fidloy import Fidloy
+
+client = Fidloy(api_key="YOUR_API_KEY")
+
+balance = client.get_points_balance(business_id=2, customer_id=30)
+print(f"Balance: {balance.get('points_balance')} points")
+
+client.close()
+```
+
+### Example 4: Validate coupon
+
+```python
+from fidloy import Fidloy
+
+client = Fidloy(api_key="YOUR_API_KEY")
+
+result = client.validate_coupon(
+    business_id=2,
+    code="SUMMER20",
+    amount=10000,
+    customer_id=30,
+    phone="+250788000000",
+    email="customer@example.com"
+)
+
+if result.get("valid"):
+    print(f"Coupon valid! Discount: {result.get('discount_amount')}")
+else:
+    print(f"Invalid coupon: {result.get('error')}")
+
+client.close()
+```
+
 ## Also Available (Direct Client)
 
 ```python
@@ -90,6 +127,10 @@ client.close()
 - `create_webhook`
 - `redeem_points`
 - `redeem_coupon`
+- `get_points_balance`
+- `list_point_rules`
+- `list_point_rules_categorized`
+- `validate_coupon`
 
 ## Publish to PyPI
 
