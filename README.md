@@ -5,10 +5,8 @@ Official Python SDK for the Fidloy API.
 ## Install
 
 ```bash
-pip install fidloy
+pip install fidloy-sdk
 ```
-
-`from fidloy import Fidloy` stays the same.
 
 ## Quick Start
 

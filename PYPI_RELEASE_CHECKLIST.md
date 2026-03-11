@@ -1,11 +1,11 @@
 # PyPI Trusted Publishing Checklist
 
-Use this checklist to publish `fidloy` to PyPI from GitHub Actions without storing a PyPI API token in GitHub secrets.
+Use this checklist to publish `fidloy-sdk` to PyPI from GitHub Actions without storing a PyPI API token in GitHub secrets.
 
 ## 1) Create package on PyPI
 
 1. Sign in to https://pypi.org
-2. Go to **Your projects** and create (or reserve by first upload) package name: `fidloy`
+2. Go to **Your projects** and create (or reserve by first upload) package name: `fidloy-sdk`
 
 ## 2) Configure Trusted Publisher on PyPI
 
@@ -33,22 +33,22 @@ Example for next version:
 
 ```bash
 cd /Users/alexbwanakweli/Desktop/CodeHub/Mista_B.I_pi
-git tag -a v0.2.0 -m "fidloy v0.2.0"
+git tag -a v0.1.2 -m "fidloy-sdk v0.1.2"
 git push origin main
-git push origin v0.2.0
+git push origin v0.1.2
 ```
 
 ## 5) Publish from GitHub Releases
 
 1. Open repository releases page
-2. Create release from tag (e.g. `v0.2.0`)
+2. Create release from tag (e.g. `v0.1.2`)
 3. Publish release
 4. GitHub Action runs automatically and uploads to PyPI
 
 ## 6) Verify installation
 
 ```bash
-python -m pip install --upgrade fidloy
+python -m pip install --upgrade fidloy-sdk
 python -c "import fidloy_sdk; print('ok')"
 ```
 
