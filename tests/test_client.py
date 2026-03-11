@@ -1,6 +1,7 @@
 import pytest
 
 from fidloy_sdk import Fidloy, FidloyClient, FidloyConfigurationError
+from fidloy import Fidloy as AliasFidloy
 
 
 def test_requires_api_key() -> None:
@@ -72,4 +73,30 @@ def test_simple_fidloy_transactions_list() -> None:
     assert captured["method"] == "GET"
     assert captured["path"] == "/customer/transactions/"
     assert captured["params"]["business_id"] == 2
+    client.close()
+
+
+def test_simple_fidloy_customers_list() -> None:
+    client = Fidloy(api_key="test-key")
+    captured = {}
+
+    def fake_request(method, path, *, params=None, json=None):
+        captured["method"] = method
+        captured["path"] = path
+        captured["params"] = params
+        return [{"id": 1, "first_name": "Alex"}]
+
+    client._request = fake_request
+    items = client.list_customers(business_id=2)
+
+    assert items == [{"id": 1, "first_name": "Alex"}]
+    assert captured["method"] == "GET"
+    assert captured["path"] == "/customer/"
+    assert captured["params"]["business_id"] == 2
+    client.close()
+
+
+def test_alias_import_works() -> None:
+    client = AliasFidloy(api_key="test-key")
+    assert isinstance(client, Fidloy)
     client.close()

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fidloy-sdk"
-version = "0.1.4"
+version = "0.1.5"
 description = "Official Python SDK for the Fidloy API"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -43,7 +43,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/fidloy_sdk"]
+packages = ["src/fidloy_sdk", "src/fidloy"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -11,19 +11,47 @@ pip install fidloy-sdk
 ## Quick Start
 
 ```python
-from fidloy_sdk import Fidloy
+from fidloy import Fidloy
 
 client = Fidloy(api_key="YOUR_API_KEY")
 
-transactions = client.transactions.list(business_id=2)
+transactions = client.list_transactions(business_id=2)
 
 for txn in transactions:
-    print(txn.get("id"), txn.get("amount"))
+    print("ID:", txn.get("id"), "Amount:", txn.get("amount"))
 
 client.close()
 ```
 
 `base_url` is optional and already defaults to the production API.
+
+## Simplest 2 Examples
+
+### Example 1: Show transactions
+
+```python
+from fidloy import Fidloy
+
+client = Fidloy(api_key="YOUR_API_KEY")
+
+for txn in client.list_transactions(business_id=2):
+    print(txn.get("id"), txn.get("amount"))
+
+client.close()
+```
+
+### Example 2: Show customers
+
+```python
+from fidloy import Fidloy
+
+client = Fidloy(api_key="YOUR_API_KEY")
+
+for customer in client.list_customers(business_id=2):
+    print(customer.get("id"), customer.get("first_name"), customer.get("phone"))
+
+client.close()
+```
 
 ## Also Available (Direct Client)
 

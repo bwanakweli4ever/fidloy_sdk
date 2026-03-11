@@ -283,6 +283,40 @@ class _TransactionsResource:
         return []
 
 
+class _CustomersResource:
+    """Convenient resource wrapper for customer listing."""
+
+    def __init__(self, client: FidloyClient) -> None:
+        self._client = client
+
+    def list(
+        self,
+        *,
+        business_id: int,
+        limit: int = 100,
+        skip: int = 0,
+    ) -> List[Dict[str, Any]]:
+        data = self._client._request(
+            "GET",
+            "/customer/",
+            params={
+                "business_id": business_id,
+                "limit": limit,
+                "skip": skip,
+            },
+        )
+        if isinstance(data, dict):
+            if isinstance(data.get("items"), list):
+                return data["items"]
+            if isinstance(data.get("data"), list):
+                return data["data"]
+            if isinstance(data.get("customers"), list):
+                return data["customers"]
+        if isinstance(data, list):
+            return data
+        return []
+
+
 class Fidloy(FidloyClient):
     """Beginner-friendly SDK facade.
 
@@ -299,3 +333,12 @@ class Fidloy(FidloyClient):
     ) -> None:
         super().__init__(api_key=api_key, base_url=base_url, timeout=timeout)
         self.transactions = _TransactionsResource(self)
+        self.customers = _CustomersResource(self)
+
+    def list_transactions(self, business_id: int, limit: int = 100, skip: int = 0) -> List[Dict[str, Any]]:
+        """Beginner shortcut for transactions list."""
+        return self.transactions.list(business_id=business_id, limit=limit, skip=skip)
+
+    def list_customers(self, business_id: int, limit: int = 100, skip: int = 0) -> List[Dict[str, Any]]:
+        """Beginner shortcut for customer list."""
+        return self.customers.list(business_id=business_id, limit=limit, skip=skip)
