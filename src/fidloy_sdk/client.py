@@ -532,14 +532,141 @@ class _CustomersResource:
         business_id: int,
         limit: int = 100,
         skip: int = 0,
+        q: Optional[str] = None,
+        ordering: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Return up to *limit* customers (offset by *skip*)."""
-        return _extract_list(
-            self._c._request(
-                "GET",
-                "/customer/",
-                params={"business_id": business_id, "limit": limit, "skip": skip},
-            )
+        params: Dict[str, Any] = {
+            "business_id": business_id,
+            "limit": limit,
+            "skip": skip,
+        }
+        if q is not None:
+            params["q"] = q
+        if ordering is not None:
+            params["ordering"] = ordering
+        return _extract_list(self._c._request("GET", "/customer/", params=params))
+
+    def get(
+        self,
+        customer_id: int,
+        *,
+        business_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request("GET", f"/customer/{customer_id}", params=params)
+
+    def update(
+        self,
+        customer_id: int,
+        *,
+        business_id: Optional[int] = None,
+        **fields: Any,
+    ) -> Dict[str, Any]:
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request(
+            "PUT", f"/customer/{customer_id}", params=params, json=fields
+        )
+
+    def delete(
+        self,
+        customer_id: int,
+        *,
+        business_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request("DELETE", f"/customer/{customer_id}", params=params)
+
+    def get_stats(
+        self,
+        customer_id: int,
+        *,
+        business_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request("GET", f"/customer/{customer_id}/stats", params=params)
+
+    def add_loyalty_points(
+        self,
+        customer_id: int,
+        *,
+        points: int,
+        password: Optional[str] = None,
+        business_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        body: Dict[str, Any] = {"points": points}
+        if password is not None:
+            body["password"] = password
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request(
+            "POST",
+            f"/customer/{customer_id}/loyalty-points/add",
+            params=params,
+            json=body,
+        )
+
+    def redeem_loyalty_points(
+        self,
+        customer_id: int,
+        *,
+        points: int,
+        password: Optional[str] = None,
+        business_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        body: Dict[str, Any] = {"points": points}
+        if password is not None:
+            body["password"] = password
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request(
+            "POST",
+            f"/customer/{customer_id}/loyalty-points/redeem",
+            params=params,
+            json=body,
+        )
+
+    def get_by_nfc(
+        self,
+        nfc_card_id: str,
+        *,
+        business_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        from urllib.parse import quote
+
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request(
+            "GET", f"/customer/nfc/{quote(nfc_card_id, safe='')}", params=params
+        )
+
+    def assign_nfc(
+        self,
+        nfc_card_id: str,
+        *,
+        customer_id: int,
+        business_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        from urllib.parse import quote
+
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request(
+            "PUT",
+            f"/customer/nfc/{quote(nfc_card_id, safe='')}/assign",
+            params=params,
+            json={"customer_id": customer_id},
+        )
+
+    def unassign_nfc(
+        self,
+        nfc_card_id: str,
+        *,
+        business_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        from urllib.parse import quote
+
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request(
+            "DELETE",
+            f"/customer/nfc/{quote(nfc_card_id, safe='')}/unassign",
+            params=params,
         )
 
     def paginate(
@@ -898,6 +1025,421 @@ class _LoyaltyResource:
             email=email,
         )
 
+    def create_point_rule(
+        self,
+        *,
+        business_id: int,
+        **fields: Any,
+    ) -> Dict[str, Any]:
+        return self._c._request(
+            "POST",
+            "/loyalty/points/rules",
+            params={"business_id": business_id},
+            json=fields,
+        )
+
+    def update_point_rule(
+        self,
+        rule_id: int,
+        *,
+        business_id: int,
+        **fields: Any,
+    ) -> Dict[str, Any]:
+        return self._c._request(
+            "PUT",
+            f"/loyalty/points/rules/{rule_id}",
+            params={"business_id": business_id},
+            json=fields,
+        )
+
+    def delete_point_rule(
+        self,
+        rule_id: int,
+        *,
+        business_id: int,
+    ) -> Dict[str, Any]:
+        return self._c._request(
+            "DELETE",
+            f"/loyalty/points/rules/{rule_id}",
+            params={"business_id": business_id},
+        )
+
+    def calculate_points(
+        self,
+        *,
+        business_id: int,
+        amount: float,
+        customer_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        body: Dict[str, Any] = {"amount": amount}
+        if customer_id is not None:
+            body["customer_id"] = customer_id
+        return self._c._request(
+            "POST",
+            "/loyalty/points/calculate",
+            params={"business_id": business_id},
+            json=body,
+        )
+
+    def compute_points_from_history(
+        self,
+        *,
+        business_id: int,
+        customer_id: int,
+    ) -> Dict[str, Any]:
+        return self._c._request(
+            "GET",
+            f"/loyalty/points/business/{business_id}/customer/{customer_id}/compute",
+        )
+
+    def get_personal_discount(
+        self,
+        customer_id: int,
+        *,
+        business_id: int,
+    ) -> Dict[str, Any]:
+        return self._c._request(
+            "GET",
+            f"/loyalty/discounts/{customer_id}",
+            params={"business_id": business_id},
+        )
+
+    def set_personal_discount(
+        self,
+        customer_id: int,
+        *,
+        business_id: int,
+        **fields: Any,
+    ) -> Dict[str, Any]:
+        return self._c._request(
+            "PUT",
+            f"/loyalty/discounts/{customer_id}",
+            params={"business_id": business_id},
+            json=fields,
+        )
+
+    def remove_personal_discount(
+        self,
+        customer_id: int,
+        *,
+        business_id: int,
+    ) -> Dict[str, Any]:
+        return self._c._request(
+            "DELETE",
+            f"/loyalty/discounts/{customer_id}",
+            params={"business_id": business_id},
+        )
+
+
+class _AuthResource:
+    """Staff authentication (``POST /auth/login``, ``POST /auth/refresh-token``)."""
+
+    def __init__(self, client: "FidloyClient") -> None:
+        self._c = client
+
+    def _auth_post(self, path: str, *, json: Optional[Dict[str, Any]] = None, bearer: Optional[str] = None) -> Dict[str, Any]:
+        base = str(self._c._client.base_url).rstrip("/")
+        headers = {"Content-Type": "application/json", "Accept": "application/json"}
+        if bearer:
+            headers["Authorization"] = f"Bearer {bearer}"
+        try:
+            response = httpx.post(
+                f"{base}{path}",
+                json=json,
+                headers=headers,
+                timeout=self._c._client.timeout,
+            )
+        except httpx.HTTPError as exc:
+            raise FidloyTransportError(str(exc)) from exc
+        try:
+            data = response.json() if response.content else {}
+        except ValueError:
+            data = {"raw": response.text}
+        if response.status_code >= 400:
+            detail = data.get("detail") if isinstance(data, dict) else response.text
+            if response.status_code in (401, 403):
+                raise FidloyAuthenticationError(
+                    response.status_code, str(detail), data
+                )
+            raise FidloyAPIError(response.status_code, str(detail), data)
+        return data
+
+    def login(
+        self,
+        *,
+        password: str,
+        email: Optional[str] = None,
+        phone: Optional[str] = None,
+        username: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        payload: Dict[str, Any] = {"password": password}
+        if email is not None:
+            payload["email"] = email
+        elif phone is not None:
+            payload["phone"] = phone
+        elif username is not None:
+            payload["username"] = username
+        else:
+            raise FidloyConfigurationError(
+                "Provide email, phone, or username for login"
+            )
+        data = self._auth_post("/auth/login", json=payload)
+        access = data.get("access_token")
+        if access:
+            self._c._client.headers["Authorization"] = f"Bearer {access}"
+        refresh = data.get("refresh_token")
+        if refresh:
+            setattr(self._c, "_refresh_token", refresh)
+        return data
+
+    def refresh(self, refresh_token: Optional[str] = None) -> Dict[str, Any]:
+        token = refresh_token or getattr(self._c, "_refresh_token", None)
+        if not token:
+            raise FidloyConfigurationError("Refresh token is required")
+        data = self._auth_post("/auth/refresh-token", bearer=token)
+        access = data.get("access_token")
+        if access:
+            self._c._client.headers["Authorization"] = f"Bearer {access}"
+        new_refresh = data.get("refresh_token")
+        if new_refresh:
+            setattr(self._c, "_refresh_token", new_refresh)
+        return data
+
+
+class _ChurnRulesResource:
+    """Legacy churn rules used by Fidloy Business (``/customer/churn/*``)."""
+
+    def __init__(self, client: FidloyClient) -> None:
+        self._c = client
+
+    def list(self, *, business_id: Optional[int] = None) -> Any:
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request("GET", "/customer/churn/rules", params=params)
+
+    def create(
+        self,
+        *,
+        business_id: Optional[int] = None,
+        **fields: Any,
+    ) -> Dict[str, Any]:
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request(
+            "POST", "/customer/churn/rules", params=params, json=fields
+        )
+
+    def update(
+        self,
+        rule_id: int,
+        *,
+        business_id: Optional[int] = None,
+        **fields: Any,
+    ) -> Dict[str, Any]:
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request(
+            "PUT", f"/customer/churn/rules/{rule_id}", params=params, json=fields
+        )
+
+    def delete(
+        self,
+        rule_id: int,
+        *,
+        business_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request(
+            "DELETE", f"/customer/churn/rules/{rule_id}", params=params
+        )
+
+    def list_churned_customers(
+        self,
+        *,
+        business_id: Optional[int] = None,
+        rule_id: Optional[int] = None,
+    ) -> Any:
+        params: Dict[str, Any] = {}
+        if business_id is not None:
+            params["business_id"] = business_id
+        if rule_id is not None:
+            params["rule_id"] = rule_id
+        return self._c._request("GET", "/customer/churn/customers", params=params or None)
+
+    def notify_customer(
+        self,
+        *,
+        business_id: Optional[int] = None,
+        **fields: Any,
+    ) -> Dict[str, Any]:
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request(
+            "POST", "/customer/churn/notify", params=params, json=fields
+        )
+
+    def notify_all(
+        self,
+        *,
+        business_id: Optional[int] = None,
+        rule_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        params: Dict[str, Any] = {}
+        if business_id is not None:
+            params["business_id"] = business_id
+        if rule_id is not None:
+            params["rule_id"] = rule_id
+        return self._c._request(
+            "POST", "/customer/churn/notify-all", params=params or None
+        )
+
+
+class _OpportunitiesResource:
+    """Customer opportunities (dashboard cards & campaigns)."""
+
+    def __init__(self, client: FidloyClient) -> None:
+        self._c = client
+
+    def list(self, *, business_id: Optional[int] = None) -> Dict[str, Any]:
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request("GET", "/customer/opportunities", params=params)
+
+    def get(
+        self,
+        opportunity_id: str,
+        *,
+        business_id: Optional[int] = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> Dict[str, Any]:
+        from urllib.parse import quote
+
+        params: Dict[str, Any] = {"limit": limit, "offset": offset}
+        if business_id is not None:
+            params["business_id"] = business_id
+        oid = quote(opportunity_id, safe="")
+        return self._c._request("GET", f"/customer/opportunities/{oid}", params=params)
+
+    def get_customer_intelligence(
+        self,
+        customer_id: int,
+        *,
+        business_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request(
+            "GET",
+            f"/customer/opportunities/customers/{customer_id}/intelligence",
+            params=params,
+        )
+
+    def notify(
+        self,
+        opportunity_id: str,
+        *,
+        sms_text: str,
+        business_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        from urllib.parse import quote
+
+        params = {"business_id": business_id} if business_id is not None else None
+        oid = quote(opportunity_id, safe="")
+        return self._c._request(
+            "POST",
+            f"/customer/opportunities/{oid}/notify",
+            params=params,
+            json={"sms_text": sms_text},
+        )
+
+
+class _BenefitsResource:
+    """Reusable benefits (``/v1/benefits/*``)."""
+
+    def __init__(self, client: FidloyClient) -> None:
+        self._c = client
+
+    def list_templates(self, *, business_id: Optional[int] = None) -> Any:
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request("GET", "/v1/benefits/templates", params=params)
+
+    def create_template(
+        self,
+        *,
+        business_id: Optional[int] = None,
+        **fields: Any,
+    ) -> Dict[str, Any]:
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request(
+            "POST", "/v1/benefits/templates", params=params, json=fields
+        )
+
+    def update_template(
+        self,
+        template_id: int,
+        *,
+        business_id: Optional[int] = None,
+        **fields: Any,
+    ) -> Dict[str, Any]:
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request(
+            "PATCH",
+            f"/v1/benefits/templates/{template_id}",
+            params=params,
+            json=fields,
+        )
+
+    def list_packages(self, *, business_id: Optional[int] = None) -> Any:
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request("GET", "/v1/benefits/packages", params=params)
+
+    def assign(
+        self,
+        *,
+        business_id: Optional[int] = None,
+        **fields: Any,
+    ) -> Dict[str, Any]:
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request(
+            "POST", "/v1/benefits/assign", params=params, json=fields
+        )
+
+    def list_for_customer(
+        self,
+        customer_id: int,
+        *,
+        business_id: Optional[int] = None,
+    ) -> Any:
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request(
+            "GET", f"/v1/benefits/customers/{customer_id}", params=params
+        )
+
+
+class _ReferralsResource:
+    """Referral program configuration."""
+
+    def __init__(self, client: FidloyClient) -> None:
+        self._c = client
+
+    def get_program(self, *, business_id: Optional[int] = None) -> Dict[str, Any]:
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request("GET", "/loyalty/referrals/program", params=params)
+
+    def save_program(
+        self,
+        *,
+        business_id: Optional[int] = None,
+        **fields: Any,
+    ) -> Dict[str, Any]:
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request(
+            "POST", "/loyalty/referrals/program", params=params, json=fields
+        )
+
+    def list_my_referrals(self, *, business_id: Optional[int] = None) -> Any:
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request("GET", "/loyalty/referrals/my-referrals", params=params)
+
+    def get_earnings(self, *, business_id: Optional[int] = None) -> Dict[str, Any]:
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request("GET", "/loyalty/referrals/earnings", params=params)
+
 
 class _ReceiptsResource:
     """``client.receipts`` — receipt management."""
@@ -1003,9 +1545,32 @@ class Fidloy(FidloyClient):
         self.events = _EventsResource(self)
         self.feedback = _FeedbackResource(self)
         self.retention_rules = _RetentionRulesResource(self)
+        self.auth = _AuthResource(self)
         self.loyalty = _LoyaltyResource(self)
+        self.churn_rules = _ChurnRulesResource(self)
+        self.opportunities = _OpportunitiesResource(self)
+        self.benefits = _BenefitsResource(self)
+        self.referrals = _ReferralsResource(self)
         self.receipts = _ReceiptsResource(self)
         self.webhooks = _WebhooksResource(self)
+
+    @classmethod
+    def login_session(
+        cls,
+        *,
+        password: str,
+        email: Optional[str] = None,
+        phone: Optional[str] = None,
+        username: Optional[str] = None,
+        base_url: str = "https://api.fidloy.com/api",
+        **client_kwargs: Any,
+    ) -> tuple["Fidloy", Dict[str, Any]]:
+        """Login and return ``(client with bearer set, token payload)``."""
+        bootstrap = cls(bearer_token="unused", base_url=base_url, **client_kwargs)
+        tokens = bootstrap.auth.login(
+            password=password, email=email, phone=phone, username=username
+        )
+        return bootstrap, tokens
 
     # ------------------------------------------------------------------
     # Flat shortcut methods (backwards compatible)
