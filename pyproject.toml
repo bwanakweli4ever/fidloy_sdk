@@ -1,6 +1,6 @@
 [build-system]
-requires = ["hatchling>=1.25.0"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "fidloy-sdk"
@@ -8,7 +8,7 @@ version = "0.1.9"
 description = "Official Python SDK for the Fidloy API"
 readme = "README.md"
 requires-python = ">=3.9"
-license = { text = "MIT" }
+license = "MIT"
 authors = [
   { name = "Fidloy" }
 ]
@@ -16,7 +16,6 @@ keywords = ["fidloy", "sdk", "api", "loyalty"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
@@ -42,8 +41,9 @@ dev = [
   "twine>=5.1.0"
 ]
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/fidloy_sdk", "src/fidloy"]
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["fidloy_sdk*", "fidloy*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
