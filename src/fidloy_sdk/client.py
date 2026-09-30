@@ -488,6 +488,37 @@ class _TransactionsResource:
             transaction_date=transaction_date,
         )
 
+    def create_v1(
+        self,
+        *,
+        external_customer_id: str,
+        amount: float,
+        transaction_date: str,
+        currency: str = "RWF",
+        store_name: Optional[str] = None,
+        description: Optional[str] = None,
+        receipt_id: Optional[str] = None,
+        provider: str = "default",
+        business_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """Record a purchase via ``POST /v1/transactions`` (external customer id)."""
+        payload: Dict[str, Any] = {
+            "external_customer_id": external_customer_id,
+            "provider": provider,
+            "amount": amount,
+            "currency": currency,
+            "transaction_date": transaction_date,
+        }
+        if business_id is not None:
+            payload["business_id"] = business_id
+        if store_name is not None:
+            payload["store_name"] = store_name
+        if description is not None:
+            payload["description"] = description
+        if receipt_id is not None:
+            payload["receipt_id"] = receipt_id
+        return self._c._request("POST", "/v1/transactions", json=payload)
+
 
 class _CustomersResource:
     """``client.customers`` — manage customers."""
@@ -627,6 +658,129 @@ class _EventsResource:
         if properties is not None:
             payload["properties"] = properties
         return self._c._request("POST", "/v1/events", json=payload)
+
+
+class _FeedbackResource:
+    """``client.feedback`` — programmatic customer feedback (``POST /v1/feedback``)."""
+
+    def __init__(self, client: FidloyClient) -> None:
+        self._c = client
+
+    def submit(
+        self,
+        *,
+        external_customer_id: str,
+        rating: int,
+        comment: Optional[str] = None,
+        provider: str = "default",
+        business_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        payload: Dict[str, Any] = {
+            "external_customer_id": external_customer_id,
+            "provider": provider,
+            "rating": rating,
+        }
+        if business_id is not None:
+            payload["business_id"] = business_id
+        if comment is not None:
+            payload["comment"] = comment
+        return self._c._request("POST", "/v1/feedback", json=payload)
+
+
+class _RetentionRulesResource:
+    """``client.retention_rules`` — tenant retention rule CRUD (``/v1/retention/rules``)."""
+
+    def __init__(self, client: FidloyClient) -> None:
+        self._c = client
+
+    def list(
+        self,
+        *,
+        business_id: Optional[int] = None,
+        include_inactive: bool = False,
+    ) -> Dict[str, Any]:
+        params: Dict[str, Any] = {"include_inactive": include_inactive}
+        if business_id is not None:
+            params["business_id"] = business_id
+        return self._c._request("GET", "/v1/retention/rules", params=params)
+
+    def create(
+        self,
+        *,
+        name: str,
+        trigger_kind: str,
+        action_kind: str,
+        trigger_config: Optional[Dict[str, Any]] = None,
+        action_config: Optional[Dict[str, Any]] = None,
+        is_active: bool = True,
+        business_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        payload: Dict[str, Any] = {
+            "name": name,
+            "trigger_kind": trigger_kind,
+            "action_kind": action_kind,
+            "trigger_config": trigger_config or {},
+            "action_config": action_config or {},
+            "is_active": is_active,
+        }
+        if business_id is not None:
+            payload["business_id"] = business_id
+        return self._c._request("POST", "/v1/retention/rules", json=payload)
+
+    def get(
+        self,
+        rule_id: int,
+        *,
+        business_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        params: Dict[str, Any] = {}
+        if business_id is not None:
+            params["business_id"] = business_id
+        return self._c._request("GET", f"/v1/retention/rules/{rule_id}", params=params or None)
+
+    def update(
+        self,
+        rule_id: int,
+        *,
+        name: Optional[str] = None,
+        trigger_kind: Optional[str] = None,
+        trigger_config: Optional[Dict[str, Any]] = None,
+        action_kind: Optional[str] = None,
+        action_config: Optional[Dict[str, Any]] = None,
+        is_active: Optional[bool] = None,
+        business_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        payload: Dict[str, Any] = {}
+        if business_id is not None:
+            payload["business_id"] = business_id
+        if name is not None:
+            payload["name"] = name
+        if trigger_kind is not None:
+            payload["trigger_kind"] = trigger_kind
+        if trigger_config is not None:
+            payload["trigger_config"] = trigger_config
+        if action_kind is not None:
+            payload["action_kind"] = action_kind
+        if action_config is not None:
+            payload["action_config"] = action_config
+        if is_active is not None:
+            payload["is_active"] = is_active
+        return self._c._request("PATCH", f"/v1/retention/rules/{rule_id}", json=payload)
+
+    def deactivate(
+        self,
+        rule_id: int,
+        *,
+        business_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        params: Dict[str, Any] = {}
+        if business_id is not None:
+            params["business_id"] = business_id
+        return self._c._request(
+            "DELETE",
+            f"/v1/retention/rules/{rule_id}",
+            params=params or None,
+        )
 
 
 class _LoyaltyResource:
@@ -847,6 +1001,8 @@ class Fidloy(FidloyClient):
         self.transactions = _TransactionsResource(self)
         self.customers = _CustomersResource(self)
         self.events = _EventsResource(self)
+        self.feedback = _FeedbackResource(self)
+        self.retention_rules = _RetentionRulesResource(self)
         self.loyalty = _LoyaltyResource(self)
         self.receipts = _ReceiptsResource(self)
         self.webhooks = _WebhooksResource(self)

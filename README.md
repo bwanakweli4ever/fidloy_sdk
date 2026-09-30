@@ -90,6 +90,65 @@ else:
 client.close()
 ```
 
+## Retention engine (API v1)
+
+Use with a business **API key**. ``business_id`` is optional when the key is scoped to one merchant.
+
+```python
+from fidloy import Fidloy
+
+client = Fidloy(api_key="YOUR_API_KEY")
+
+# Identity + external ID mapping
+client.customers.upsert(
+    external_customer_id="cus_123",
+    first_name="Alex",
+    last_name="Dev",
+    email="alex@example.com",
+)
+
+# Activity signals (idempotent via external_event_id)
+client.events.track(
+    external_customer_id="cus_123",
+    event_type="subscription_renewed",
+    external_event_id="evt_unique_1",
+    occurred_at="2026-09-30T12:00:00Z",
+    amount=49.0,
+    properties={"plan": "pro"},
+)
+
+# Purchases (external customer id)
+client.transactions.create_v1(
+    external_customer_id="cus_123",
+    amount=12000,
+    transaction_date="2026-09-30T12:00:00Z",
+    store_name="Online",
+)
+
+# Feedback
+client.feedback.submit(
+    external_customer_id="cus_123",
+    rating=4,
+    comment="Great service",
+)
+
+# Retention snapshot
+snap = client.customers.retention("cus_123")
+print(snap.get("state"), snap.get("score"), snap.get("reasons"))
+
+# Retention rules (tenant automation config)
+rules = client.retention_rules.list()
+client.retention_rules.create(
+    name="At risk SMS",
+    trigger_kind="customer_state",
+    trigger_config={"state": "AT_RISK"},
+    action_kind="send_sms",
+    action_config={"message": "We miss you!"},
+)
+
+client.close()
+```
+
 ## Also Available (Direct Client)
 
 ```python
