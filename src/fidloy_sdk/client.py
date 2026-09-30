@@ -788,7 +788,7 @@ class _EventsResource:
 
 
 class _FeedbackResource:
-    """``client.feedback`` — programmatic customer feedback (``POST /v1/feedback``)."""
+    """``client.feedback`` — v1 ingest + merchant inbox (``/customer/feedback``)."""
 
     def __init__(self, client: FidloyClient) -> None:
         self._c = client
@@ -812,6 +812,43 @@ class _FeedbackResource:
         if comment is not None:
             payload["comment"] = comment
         return self._c._request("POST", "/v1/feedback", json=payload)
+
+    def get_inbox(self, *, business_id: Optional[int] = None) -> Dict[str, Any]:
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request("GET", "/customer/feedback", params=params)
+
+    def list_received(self, *, business_id: Optional[int] = None) -> Dict[str, Any]:
+        return self.get_inbox(business_id=business_id)
+
+    def update_settings(
+        self,
+        settings: Dict[str, Any],
+        *,
+        business_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        params = {"business_id": business_id} if business_id is not None else None
+        return self._c._request(
+            "PUT", "/customer/feedback/settings", params=params, json=settings
+        )
+
+    def send_bulk_sms(
+        self,
+        *,
+        message: str,
+        send_all: bool = False,
+        customer_ids: Optional[List[int]] = None,
+        business_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        params = {"business_id": business_id} if business_id is not None else None
+        payload: Dict[str, Any] = {"message": message, "send_all": send_all}
+        if customer_ids:
+            payload["customer_ids"] = customer_ids
+        return self._c._request(
+            "POST",
+            "/customer/feedback/send-bulk-sms",
+            params=params,
+            json=payload,
+        )
 
 
 class _RetentionRulesResource:

@@ -30,6 +30,9 @@ assert hasattr(c.customers, "retention"), "customers.retention missing"
 assert hasattr(c.transactions, "create_v1"), "transactions.create_v1 missing"
 assert hasattr(c.events, "track"), "events.track missing"
 assert hasattr(c.feedback, "submit"), "feedback.submit missing"
+assert hasattr(c.feedback, "get_inbox"), "feedback.get_inbox missing"
+assert hasattr(c.feedback, "update_settings"), "feedback.update_settings missing"
+assert hasattr(c.feedback, "send_bulk_sms"), "feedback.send_bulk_sms missing"
 assert hasattr(c.retention_rules, "list"), "retention_rules.list missing"
 
 # 3b. Missing endpoints now included
