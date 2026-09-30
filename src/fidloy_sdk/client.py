@@ -325,6 +325,74 @@ class FidloyClient:
             params={"event_type": event_type, "page": page, "page_size": page_size},
         )
 
+    def get_points_balance(
+        self,
+        *,
+        business_id: int,
+        customer_id: int,
+    ) -> Dict[str, Any]:
+        """Get a customer's points balance for a specific business."""
+        return self._request(
+            "GET",
+            f"/loyalty/points/business/{business_id}/customer/{customer_id}/points",
+        )
+
+    def list_point_rules(
+        self,
+        *,
+        business_id: int,
+        rule_type: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """List active point rules for a business."""
+        params: Dict[str, Any] = {"business_id": business_id}
+        if rule_type:
+            params["rule_type"] = rule_type
+        return _extract_list(self._request("GET", "/loyalty/points/rules", params=params))
+
+    def list_point_rules_categorized(
+        self,
+        *,
+        business_id: int,
+    ) -> Dict[str, List[Dict[str, Any]]]:
+        """List active point rules grouped by category for a business."""
+        data = self._request(
+            "GET",
+            "/loyalty/points/rules/categorized",
+            params={"business_id": business_id},
+        )
+        if isinstance(data, dict):
+            return data
+        return {}
+
+    def validate_coupon(
+        self,
+        *,
+        business_id: int,
+        code: str,
+        amount: float,
+        customer_id: Optional[int] = None,
+        phone: Optional[str] = None,
+        email: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Validate coupon code applicability and discount outcome."""
+        payload: Dict[str, Any] = {
+            "code": code,
+            "amount": amount,
+        }
+        if customer_id is not None:
+            payload["customer_id"] = customer_id
+        if phone is not None:
+            payload["phone"] = phone
+        if email is not None:
+            payload["email"] = email
+
+        return self._request(
+            "POST",
+            "/loyalty/coupons/validate",
+            params={"business_id": business_id},
+            json=payload,
+        )
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -483,6 +551,83 @@ class _CustomersResource:
             phone=phone,
         )
 
+    def upsert(
+        self,
+        *,
+        external_customer_id: str,
+        first_name: str,
+        last_name: str,
+        business_id: Optional[int] = None,
+        email: Optional[str] = None,
+        phone: Optional[str] = None,
+        provider: str = "default",
+    ) -> Dict[str, Any]:
+        payload: Dict[str, Any] = {
+            "external_customer_id": external_customer_id,
+            "provider": provider,
+            "first_name": first_name,
+            "last_name": last_name,
+        }
+        if business_id is not None:
+            payload["business_id"] = business_id
+        if email is not None:
+            payload["email"] = email
+        if phone is not None:
+            payload["phone"] = phone
+        return self._c._request("POST", "/v1/customers", json=payload)
+
+    def retention(
+        self,
+        external_customer_id: str,
+        *,
+        provider: str = "default",
+        business_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        from urllib.parse import quote
+
+        path = f"/v1/customers/{quote(external_customer_id, safe='')}/retention"
+        params: Dict[str, Any] = {"provider": provider}
+        if business_id is not None:
+            params["business_id"] = business_id
+        return self._c._request("GET", path, params=params)
+
+
+class _EventsResource:
+    """``client.events`` — retention event tracking (/v1/events)."""
+
+    def __init__(self, client: FidloyClient) -> None:
+        self._c = client
+
+    def track(
+        self,
+        *,
+        external_customer_id: str,
+        event_type: str,
+        external_event_id: str,
+        occurred_at: str,
+        amount: Optional[float] = None,
+        currency: Optional[str] = None,
+        properties: Optional[Dict[str, Any]] = None,
+        provider: str = "default",
+        business_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        payload: Dict[str, Any] = {
+            "external_customer_id": external_customer_id,
+            "provider": provider,
+            "external_event_id": external_event_id,
+            "event_type": event_type,
+            "occurred_at": occurred_at,
+        }
+        if business_id is not None:
+            payload["business_id"] = business_id
+        if amount is not None:
+            payload["amount"] = amount
+        if currency is not None:
+            payload["currency"] = currency
+        if properties is not None:
+            payload["properties"] = properties
+        return self._c._request("POST", "/v1/events", json=payload)
+
 
 class _LoyaltyResource:
     """``client.loyalty`` — loyalty points and coupons."""
@@ -543,6 +688,60 @@ class _LoyaltyResource:
             event_type=event_type,
             page=page,
             page_size=page_size,
+        )
+
+    def get_points_balance(
+        self,
+        *,
+        business_id: int,
+        customer_id: int,
+    ) -> Dict[str, Any]:
+        return FidloyClient.get_points_balance(
+            self._c,
+            business_id=business_id,
+            customer_id=customer_id,
+        )
+
+    def list_point_rules(
+        self,
+        *,
+        business_id: int,
+        rule_type: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        return FidloyClient.list_point_rules(
+            self._c,
+            business_id=business_id,
+            rule_type=rule_type,
+        )
+
+    def list_point_rules_categorized(
+        self,
+        *,
+        business_id: int,
+    ) -> Dict[str, List[Dict[str, Any]]]:
+        return FidloyClient.list_point_rules_categorized(
+            self._c,
+            business_id=business_id,
+        )
+
+    def validate_coupon(
+        self,
+        *,
+        business_id: int,
+        code: str,
+        amount: float,
+        customer_id: Optional[int] = None,
+        phone: Optional[str] = None,
+        email: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        return FidloyClient.validate_coupon(
+            self._c,
+            business_id=business_id,
+            code=code,
+            amount=amount,
+            customer_id=customer_id,
+            phone=phone,
+            email=email,
         )
 
 
@@ -647,6 +846,7 @@ class Fidloy(FidloyClient):
         # Structured API modules
         self.transactions = _TransactionsResource(self)
         self.customers = _CustomersResource(self)
+        self.events = _EventsResource(self)
         self.loyalty = _LoyaltyResource(self)
         self.receipts = _ReceiptsResource(self)
         self.webhooks = _WebhooksResource(self)
@@ -675,5 +875,57 @@ class Fidloy(FidloyClient):
     ) -> List[Dict[str, Any]]:
         """Return up to *limit* customers. Use ``customers.paginate()`` for all pages."""
         return self.customers.list(business_id=business_id, limit=limit, skip=skip)
+
+    def get_points_balance(
+        self,
+        *,
+        business_id: int,
+        customer_id: int,
+    ) -> Dict[str, Any]:
+        """Shortcut for ``loyalty.get_points_balance``."""
+        return self.loyalty.get_points_balance(
+            business_id=business_id,
+            customer_id=customer_id,
+        )
+
+    def list_point_rules(
+        self,
+        *,
+        business_id: int,
+        rule_type: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """Shortcut for ``loyalty.list_point_rules``."""
+        return self.loyalty.list_point_rules(
+            business_id=business_id,
+            rule_type=rule_type,
+        )
+
+    def list_point_rules_categorized(
+        self,
+        *,
+        business_id: int,
+    ) -> Dict[str, List[Dict[str, Any]]]:
+        """Shortcut for ``loyalty.list_point_rules_categorized``."""
+        return self.loyalty.list_point_rules_categorized(business_id=business_id)
+
+    def validate_coupon(
+        self,
+        *,
+        business_id: int,
+        code: str,
+        amount: float,
+        customer_id: Optional[int] = None,
+        phone: Optional[str] = None,
+        email: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Shortcut for ``loyalty.validate_coupon``."""
+        return self.loyalty.validate_coupon(
+            business_id=business_id,
+            code=code,
+            amount=amount,
+            customer_id=customer_id,
+            phone=phone,
+            email=email,
+        )
 
 

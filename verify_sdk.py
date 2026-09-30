@@ -23,6 +23,16 @@ assert hasattr(c, "loyalty"),      "loyalty module missing"
 assert hasattr(c, "receipts"),     "receipts module missing"
 assert hasattr(c, "webhooks"),     "webhooks module missing"
 
+# 3b. Missing endpoints now included
+assert hasattr(c, "get_points_balance"), "get_points_balance shortcut missing"
+assert hasattr(c, "list_point_rules"), "list_point_rules shortcut missing"
+assert hasattr(c, "list_point_rules_categorized"), "list_point_rules_categorized shortcut missing"
+assert hasattr(c, "validate_coupon"), "validate_coupon shortcut missing"
+assert hasattr(c.loyalty, "get_points_balance"), "loyalty.get_points_balance missing"
+assert hasattr(c.loyalty, "list_point_rules"), "loyalty.list_point_rules missing"
+assert hasattr(c.loyalty, "list_point_rules_categorized"), "loyalty.list_point_rules_categorized missing"
+assert hasattr(c.loyalty, "validate_coupon"), "loyalty.validate_coupon missing"
+
 # 4. Pagination methods are generators
 assert inspect.isgeneratorfunction(c.transactions.paginate), "transactions.paginate not a generator"
 assert inspect.isgeneratorfunction(c.customers.paginate),    "customers.paginate not a generator"
